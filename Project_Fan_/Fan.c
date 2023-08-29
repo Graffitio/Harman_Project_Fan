@@ -78,8 +78,8 @@ void Fan_Stage()
 		LED_PORT |= (1<<PINA0);
 		DDRB |= (1<<PINB4);
 		OCR0 = 64; // 25%
-		PORTF &= ~(1<<PINF5); // Motor 정방향 회전
-		PORTF |= (1<<PINF4);
+		PORTF &= ~(1<<PINF4); // Motor 정방향 회전
+		PORTF |= (1<<PINF5);
 		LCD_WriteStringXY(0,0,"   1st Stage    ");
 		LCD_WriteStringXY(1,0,"  Power :  25%  ");
 		Spin_status_LED();
@@ -94,8 +94,8 @@ void Fan_Stage()
 		LED_PORT |= (1<<PINA0) | (1<<PINA1);
 		DDRB |= (1<<PINB4);
 		OCR0 = 128; // 50%
-		PORTF &= ~(1<<PINF5); // Motor 정방향 회전
-		PORTF |= (1<<PINF4);
+		PORTF &= ~(1<<PINF4); // Motor 정방향 회전
+		PORTF |= (1<<PINF5);
 		LCD_WriteStringXY(0,0,"   2nd Stage    ");
 		LCD_WriteStringXY(1,0,"  Power :  50%  ");
 		Spin_status_LED();
@@ -110,8 +110,8 @@ void Fan_Stage()
 		LED_PORT |= (1<<PINA0) | (1<<PINA1) | (1<<PINA2);
 		DDRB |= (1<<PINB4);
 		OCR0 = 255; // 100%
-		PORTF &= ~(1<<PINF5); // Motor 정방향 회전
-		PORTF |= (1<<PINF4);
+		PORTF &= ~(1<<PINF4); // Motor 정방향 회전
+		PORTF |= (1<<PINF5);
 		LCD_WriteStringXY(0,0,"   3rd Stage    ");
 		LCD_WriteStringXY(1,0,"  Power : 100%  ");
 		Spin_status_LED();
@@ -142,8 +142,8 @@ void Fan_continue_run()
 			LED_PORT |= (1<<PINA0);
 			DDRB |= (1<<PINB4);
 			OCR0 = 64; // 25%
-			PORTF &= ~(1<<PINF5); // Motor 정방향 회전
-			PORTF |= (1<<PINF4);
+			PORTF &= ~(1<<PINF4); // Motor 정방향 회전
+			PORTF |= (1<<PINF5);
 			LCD_WriteStringXY(0,0,"   1st Stage    ");
 			LCD_WriteStringXY(1,0,"  Power :  25%  ");
 			Fan_run_status = Fan_1st;
@@ -157,8 +157,8 @@ void Fan_continue_run()
 			LED_PORT |= (1<<PINA0) | (1<<PINA1);
 			DDRB |= (1<<PINB4);
 			OCR0 = 128; // 50%
-			PORTF &= ~(1<<PINF5); // Motor 정방향 회전
-			PORTF |= (1<<PINF4);
+			PORTF &= ~(1<<PINF4); // Motor 정방향 회전
+			PORTF |= (1<<PINF5);
 			LCD_WriteStringXY(0,0,"   2nd Stage    ");
 			LCD_WriteStringXY(1,0,"  Power :  50%  ");
 			Fan_run_status = Fan_2nd;
@@ -172,8 +172,8 @@ void Fan_continue_run()
 			LED_PORT |= (1<<PINA0) | (1<<PINA1) | (1<<PINA2);
 			DDRB |= (1<<PINB4);
 			OCR0 = 255; // 100%
-			PORTF &= ~(1<<PINF5); // Motor 정방향 회전
-			PORTF |= (1<<PINF4);
+			PORTF &= ~(1<<PINF4); // Motor 정방향 회전
+			PORTF |= (1<<PINF5);
 			LCD_WriteStringXY(0,0,"   3rd Stage    ");
 			LCD_WriteStringXY(1,0,"  Power : 100%  ");
 			Fan_run_status = Fan_3rd;
@@ -247,12 +247,13 @@ void Head_spin_op()
 		Display_LCD();
 		DDRB = (1<<PINB5);
 		BUTTON_spin_getState(&btn_spin);
+		LED_PORT |= (1<<PINA3);
 		while((spin_cnt == 1))
 		{
 			Spin_status_LED();
 			for (int i = 0; i < 90 ; i++)
 			{
-				//Spin_status_LED();
+				LED_PORT |= (1<<PINA3);
 				BUTTON_spin_getState(&btn_spin);
 				Fan_continue_run();
 				Display_LCD();
@@ -268,6 +269,7 @@ void Head_spin_op()
 			for (int j = 0; j < 90 ; j++)
 			{
 				//Spin_status_LED();
+				LED_PORT |= (1<<PINA3);
 				BUTTON_spin_getState(&btn_spin);
 				Fan_continue_run();
 				Display_LCD();
@@ -285,7 +287,6 @@ void Head_spin_op()
 	
 		default:
 		BUTTON_spin_getState(&btn_spin);
-		Spin_status_LED();
 		Fan_continue_run();
 		Display_LCD();
 		Spin_stop();
@@ -312,6 +313,7 @@ void Spin_stop()
 void Spin_start(uint8_t degree)
 {
 	// 0도 : 125 / 180도 : 625
+	LED_PORT |= (1<<PINA3);
 	uint16_t degree_value;
 	TCCR1A |= (1<<COM1A1); // PWM 다시 출력되도록
 	if (degree_value < 0) // 제한 범위를 벗어나 고장나지 않도록 설정
@@ -324,4 +326,10 @@ void Spin_start(uint8_t degree)
 	}
 	degree_value = (uint16_t)((degree/180.0)*500 + 125); // 우리가 흔히 쓰는 각도로 표현하기 위한 식
 	OCR1A = degree_value;
+}
+
+
+void UltraSonic()
+{
+	
 }
