@@ -21,6 +21,7 @@
 #define Fan_2nd		2
 #define Fan_3rd		3
 #define Fan_initial 4
+#define PRESCALER 1024
 
 // 버튼 객체들 선언
 Button btnStop;
@@ -29,6 +30,7 @@ Button btn_2stage;
 Button btn_3stage;
 Button btn_spin;
 int Fan_run_status;
+//uint8_t distance;
 
 // 함수 원형 선언
 void Fan_Init(); // 팬 초기화 함수
@@ -40,6 +42,8 @@ void Fan_continue_run();
 void Display_LCD();
 void Head_spin_op();
 void Spin_status_LED();
+//uint8_t measure_distance();
+//void Timer_init();
 
 
 #endif /* FAN_H_ */

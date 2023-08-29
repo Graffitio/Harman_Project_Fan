@@ -15,19 +15,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
   5 .debug_aranges 00000150  00000000  00000000  00000df4  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   00001dc0  00000000  00000000  00000f44  2**0
+  6 .debug_info   00001dc1  00000000  00000000  00000f44  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000da8  00000000  00000000  00002d04  2**0
+  7 .debug_abbrev 00000d99  00000000  00000000  00002d05  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00000e92  00000000  00000000  00003aac  2**0
+  8 .debug_line   00000e93  00000000  00000000  00003a9e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000250  00000000  00000000  00004940  2**2
+  9 .debug_frame  00000250  00000000  00000000  00004934  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    000006b9  00000000  00000000  00004b90  2**0
+ 10 .debug_str    000006ec  00000000  00000000  00004b84  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    000006e5  00000000  00000000  00005249  2**0
+ 11 .debug_loc    000006e5  00000000  00000000  00005270  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000100  00000000  00000000  0000592e  2**0
+ 12 .debug_ranges 00000100  00000000  00000000  00005955  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -147,25 +147,14 @@ Disassembly of section .text:
   c6:	9c cf       	rjmp	.-200    	; 0x0 <__vectors>
 
 000000c8 <Button_init>:
-#include <avr/io.h>
-#include <util/delay.h>
-
-// 버튼 초기화 함수 정의
-void Button_init(Button *button, volatile uint8_t *ddr, volatile uint8_t *pin, uint8_t pinNum)
-{
   c8:	fc 01       	movw	r30, r24
-	button->ddr = ddr; // 버튼의 입출력 방향 레지스터 설정
   ca:	71 83       	std	Z+1, r23	; 0x01
   cc:	60 83       	st	Z, r22
-	button->pin = pin; // 버튼의 상태를 읽을 포트 레지스터 설정
   ce:	53 83       	std	Z+3, r21	; 0x03
   d0:	42 83       	std	Z+2, r20	; 0x02
-	button->btnPin = pinNum; // 버튼 핀 번호 설정
   d2:	24 83       	std	Z+4, r18	; 0x04
-	button->prevState = RELEASED; // 초기화, 아무것도 안 누른 상태
   d4:	81 e0       	ldi	r24, 0x01	; 1
   d6:	85 83       	std	Z+5, r24	; 0x05
-	*button->ddr &= ~(1 << button->btnPin); // 버튼 핀을 입력으로 설정, ->가 *보다 빠름
   d8:	fb 01       	movw	r30, r22
   da:	30 81       	ld	r19, Z
   dc:	81 e0       	ldi	r24, 0x01	; 1
@@ -181,13 +170,7 @@ void Button_init(Button *button, volatile uint8_t *ddr, volatile uint8_t *pin, u
   f0:	08 95       	ret
 
 000000f2 <BUTTON_getState>:
-}
-
-// 버튼 상태 반환 함수 정의
-uint8_t BUTTON_getState(Button *button)
-{
   f2:	fc 01       	movw	r30, r24
-	uint8_t curState = *button->pin & (1<<button->btnPin); // 버튼 상태를 읽어옴
   f4:	a2 81       	ldd	r26, Z+2	; 0x02
   f6:	b3 81       	ldd	r27, Z+3	; 0x03
   f8:	8c 91       	ld	r24, X
@@ -200,8 +183,6 @@ uint8_t BUTTON_getState(Button *button)
  106:	0a 94       	dec	r0
  108:	e2 f7       	brpl	.-8      	; 0x102 <BUTTON_getState+0x10>
  10a:	28 23       	and	r18, r24
-	
-	if ((curState == PUSHED) && (button->prevState == RELEASED)) // 버튼을 안 누른 상태에서 누르면,
  10c:	59 f4       	brne	.+22     	; 0x124 <BUTTON_getState+0x32>
  10e:	85 81       	ldd	r24, Z+5	; 0x05
  110:	81 30       	cpi	r24, 0x01	; 1
@@ -218,14 +199,8 @@ uint8_t BUTTON_getState(Button *button)
  11a:	f1 f7       	brne	.-4      	; 0x118 <BUTTON_getState+0x26>
  11c:	00 c0       	rjmp	.+0      	; 0x11e <BUTTON_getState+0x2c>
  11e:	00 00       	nop
-	{
-		_delay_ms(50); // 디바운스 코드
-		button->prevState = PUSHED; // 버튼을 누른 상태로 변환
  120:	15 82       	std	Z+5, r1	; 0x05
-		return ACT_PUSH; // 버튼이 눌려 있음을 반환
  122:	08 95       	ret
-	}
-	else if((curState != PUSHED) && (button->prevState == PUSHED)) // 버튼을 누른 상태에서 떼면,
  124:	22 23       	and	r18, r18
  126:	69 f0       	breq	.+26     	; 0x142 <BUTTON_getState+0x50>
  128:	85 81       	ldd	r24, Z+5	; 0x05
@@ -237,28 +212,17 @@ uint8_t BUTTON_getState(Button *button)
  134:	f1 f7       	brne	.-4      	; 0x132 <BUTTON_getState+0x40>
  136:	00 c0       	rjmp	.+0      	; 0x138 <BUTTON_getState+0x46>
  138:	00 00       	nop
-	{
-		_delay_ms(50); // 디바운스 코드
-		button->prevState = RELEASED; // 버튼을 땐 상태로 변환
  13a:	81 e0       	ldi	r24, 0x01	; 1
  13c:	85 83       	std	Z+5, r24	; 0x05
-		return ACT_RELEASED; // 버튼이 떨어진 것을 반환
  13e:	82 e0       	ldi	r24, 0x02	; 2
  140:	08 95       	ret
-	}
-	return NO_ACT; // 아무 것도 안 했을 때
  142:	80 e0       	ldi	r24, 0x00	; 0
  144:	08 95       	ret
  146:	80 e0       	ldi	r24, 0x00	; 0
-}
  148:	08 95       	ret
 
 0000014a <BUTTON_spin_getState>:
-
-uint8_t BUTTON_spin_getState(Button *button)
-{
  14a:	fc 01       	movw	r30, r24
-	uint8_t curState = *button->pin & (1<<button->btnPin); // 버튼 상태를 읽어옴
  14c:	a2 81       	ldd	r26, Z+2	; 0x02
  14e:	b3 81       	ldd	r27, Z+3	; 0x03
  150:	8c 91       	ld	r24, X
@@ -271,8 +235,6 @@ uint8_t BUTTON_spin_getState(Button *button)
  15e:	0a 94       	dec	r0
  160:	e2 f7       	brpl	.-8      	; 0x15a <BUTTON_spin_getState+0x10>
  162:	28 23       	and	r18, r24
-	
-	if ((curState == PUSHED) && (button->prevState == RELEASED)) // 버튼을 안 누른 상태에서 누르면,
  164:	59 f4       	brne	.+22     	; 0x17c <BUTTON_spin_getState+0x32>
  166:	85 81       	ldd	r24, Z+5	; 0x05
  168:	81 30       	cpi	r24, 0x01	; 1
@@ -283,14 +245,8 @@ uint8_t BUTTON_spin_getState(Button *button)
  172:	f1 f7       	brne	.-4      	; 0x170 <BUTTON_spin_getState+0x26>
  174:	00 c0       	rjmp	.+0      	; 0x176 <BUTTON_spin_getState+0x2c>
  176:	00 00       	nop
-	{
-		_delay_ms(50); // 디바운스 코드
-		button->prevState = PUSHED; // 버튼을 누른 상태로 변환
  178:	15 82       	std	Z+5, r1	; 0x05
-		return ACT_PUSH; // 버튼이 눌려 있음을 반환
  17a:	08 95       	ret
-	}
-	else if((curState != PUSHED) && (button->prevState == PUSHED)) // 버튼을 누른 상태에서 떼면,
  17c:	22 23       	and	r18, r18
  17e:	a9 f0       	breq	.+42     	; 0x1aa <BUTTON_spin_getState+0x60>
  180:	85 81       	ldd	r24, Z+5	; 0x05
@@ -302,21 +258,14 @@ uint8_t BUTTON_spin_getState(Button *button)
  18c:	f1 f7       	brne	.-4      	; 0x18a <BUTTON_spin_getState+0x40>
  18e:	00 c0       	rjmp	.+0      	; 0x190 <BUTTON_spin_getState+0x46>
  190:	00 00       	nop
-	{
-		_delay_ms(50); // 디바운스 코드
-		button->prevState = RELEASED; // 버튼을 땐 상태로 변환
  192:	81 e0       	ldi	r24, 0x01	; 1
  194:	85 83       	std	Z+5, r24	; 0x05
-		spin_cnt++;
  196:	80 91 aa 01 	lds	r24, 0x01AA	; 0x8001aa <__data_end>
  19a:	90 91 ab 01 	lds	r25, 0x01AB	; 0x8001ab <__data_end+0x1>
  19e:	01 96       	adiw	r24, 0x01	; 1
  1a0:	90 93 ab 01 	sts	0x01AB, r25	; 0x8001ab <__data_end+0x1>
  1a4:	80 93 aa 01 	sts	0x01AA, r24	; 0x8001aa <__data_end>
-		return ACT_RELEASED, spin_cnt; // 버튼이 떨어진 것을 반환
  1a8:	08 95       	ret
-	}
-	return NO_ACT; // 아무 것도 안 했을 때
  1aa:	80 e0       	ldi	r24, 0x00	; 0
  1ac:	08 95       	ret
  1ae:	80 e0       	ldi	r24, 0x00	; 0
@@ -605,8 +554,8 @@ void Fan_Stage()
 		DDRB |= (1<<PINB4);
  338:	80 61       	ori	r24, 0x10	; 16
  33a:	87 bb       	out	0x17, r24	; 23
- 33c:	80 e8       	ldi	r24, 0x80	; 128
-		OCR0 = 128; // 50%
+ 33c:	88 e7       	ldi	r24, 0x78	; 120
+		OCR0 = 120; // 50%
  33e:	81 bf       	out	0x31, r24	; 49
  340:	e2 e6       	ldi	r30, 0x62	; 98
 		PORTF &= ~(1<<PINF4); // Motor 정방향 회전
@@ -1272,81 +1221,45 @@ void Head_spin_op()
  6d8:	08 95       	ret
 
 000006da <I2C_Init>:
-#include "I2C.h"
-
-
-void I2C_Init()
-{
-	I2C_DDR |= (1<<I2C_SCL) | (1<<I2C_SDA); // 출력 설정
  6da:	81 b3       	in	r24, 0x11	; 17
  6dc:	83 60       	ori	r24, 0x03	; 3
  6de:	81 bb       	out	0x11, r24	; 17
-	TWBR = 72; // 100KHz
  6e0:	88 e4       	ldi	r24, 0x48	; 72
  6e2:	80 93 70 00 	sts	0x0070, r24	; 0x800070 <__TEXT_REGION_LENGTH__+0x7e0070>
  6e6:	08 95       	ret
 
 000006e8 <I2C_Start>:
-	// TWBR = 12; // 400KHz
-}
-
-void I2C_Start()
-{
-	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN); // 1을 보내는 것은, S/W적으로 플래그를 Clear해주는 것이다.
  6e8:	84 ea       	ldi	r24, 0xA4	; 164
  6ea:	80 93 74 00 	sts	0x0074, r24	; 0x800074 <__TEXT_REGION_LENGTH__+0x7e0074>
-	                                            // 1 Set하여 인터럽트 발생시키는 것이 아님.
-	while(!(TWCR & (1<<TWINT))); // 하드웨어적으로 TWINT 시점을 결정
  6ee:	80 91 74 00 	lds	r24, 0x0074	; 0x800074 <__TEXT_REGION_LENGTH__+0x7e0074>
  6f2:	88 23       	and	r24, r24
  6f4:	e4 f7       	brge	.-8      	; 0x6ee <I2C_Start+0x6>
-	                             // 기다렸다가 조건이 만족되면 while문 수행
-}
  6f6:	08 95       	ret
 
 000006f8 <I2C_Stop>:
-
-void I2C_Stop()
-{
-	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO); // Stop 비트 설정
  6f8:	84 e9       	ldi	r24, 0x94	; 148
  6fa:	80 93 74 00 	sts	0x0074, r24	; 0x800074 <__TEXT_REGION_LENGTH__+0x7e0074>
  6fe:	08 95       	ret
 
 00000700 <I2C_TxData>:
-}
-
-void I2C_TxData(uint8_t data) // data 1바이트 전송
-{
-	TWDR = data;
  700:	80 93 73 00 	sts	0x0073, r24	; 0x800073 <__TEXT_REGION_LENGTH__+0x7e0073>
-	TWCR = (1<<TWINT) | (1<<TWEN);
  704:	84 e8       	ldi	r24, 0x84	; 132
  706:	80 93 74 00 	sts	0x0074, r24	; 0x800074 <__TEXT_REGION_LENGTH__+0x7e0074>
-	while (!(TWCR & (1<<TWINT))); // 전송 완료 대기
  70a:	80 91 74 00 	lds	r24, 0x0074	; 0x800074 <__TEXT_REGION_LENGTH__+0x7e0074>
  70e:	88 23       	and	r24, r24
  710:	e4 f7       	brge	.-8      	; 0x70a <I2C_TxData+0xa>
-}
  712:	08 95       	ret
 
 00000714 <I2C_TxByte>:
-
-void I2C_TxByte(uint8_t devAddrRW, uint8_t data)
-{
  714:	cf 93       	push	r28
  716:	df 93       	push	r29
  718:	d8 2f       	mov	r29, r24
  71a:	c6 2f       	mov	r28, r22
-	I2C_Start();
  71c:	e5 df       	rcall	.-54     	; 0x6e8 <I2C_Start>
-	I2C_TxData(devAddrRW); // 읽을 것이냐 쓸 것이냐
  71e:	8d 2f       	mov	r24, r29
  720:	ef df       	rcall	.-34     	; 0x700 <I2C_TxData>
-	I2C_TxData(data); // 입/출력할 데이터 보냄
  722:	8c 2f       	mov	r24, r28
  724:	ed df       	rcall	.-38     	; 0x700 <I2C_TxData>
-	I2C_Stop();
  726:	e8 df       	rcall	.-48     	; 0x6f8 <I2C_Stop>
  728:	df 91       	pop	r29
  72a:	cf 91       	pop	r28
@@ -1354,31 +1267,18 @@ void I2C_TxByte(uint8_t devAddrRW, uint8_t data)
 
 0000072e <LCD_EnablePin>:
  72e:	60 91 cc 01 	lds	r22, 0x01CC	; 0x8001cc <I2C_LCD_Data>
-	// [7:4] 핀만 사용해서 반반 나눠서 출력하면, 총 8bit를 출력할 수 있다.
-}
-
-void LCD_EnablePin()
-{
-	I2C_LCD_Data &= ~(1<<LCD_E); // E low 설정
  732:	6b 7f       	andi	r22, 0xFB	; 251
  734:	60 93 cc 01 	sts	0x01CC, r22	; 0x8001cc <I2C_LCD_Data>
-	I2C_TxByte(LCD_DEV_ADDR, I2C_LCD_Data);
  738:	8e e4       	ldi	r24, 0x4E	; 78
  73a:	ec df       	rcall	.-40     	; 0x714 <I2C_TxByte>
-	
-	I2C_LCD_Data |= (1<<LCD_E); // High 설정
  73c:	60 91 cc 01 	lds	r22, 0x01CC	; 0x8001cc <I2C_LCD_Data>
  740:	64 60       	ori	r22, 0x04	; 4
  742:	60 93 cc 01 	sts	0x01CC, r22	; 0x8001cc <I2C_LCD_Data>
-	I2C_TxByte(LCD_DEV_ADDR, I2C_LCD_Data);
  746:	8e e4       	ldi	r24, 0x4E	; 78
  748:	e5 df       	rcall	.-54     	; 0x714 <I2C_TxByte>
-	
-	I2C_LCD_Data &= ~(1<<LCD_E); // E low 설정
  74a:	60 91 cc 01 	lds	r22, 0x01CC	; 0x8001cc <I2C_LCD_Data>
  74e:	6b 7f       	andi	r22, 0xFB	; 251
  750:	60 93 cc 01 	sts	0x01CC, r22	; 0x8001cc <I2C_LCD_Data>
-	I2C_TxByte(LCD_DEV_ADDR, I2C_LCD_Data);
  754:	8e e4       	ldi	r24, 0x4E	; 78
  756:	de df       	rcall	.-68     	; 0x714 <I2C_TxByte>
 	#else
@@ -1396,25 +1296,15 @@ void LCD_EnablePin()
  764:	08 95       	ret
 
 00000766 <LCD_Data4bit>:
-#include "I2C_LCD.h"
-
-uint8_t I2C_LCD_Data;
-
-void LCD_Data4bit(uint8_t data)
-{
  766:	cf 93       	push	r28
  768:	c8 2f       	mov	r28, r24
-	I2C_LCD_Data = (I2C_LCD_Data & 0x0f) | (data & 0xf0); // 상위 4bit 출력
  76a:	80 91 cc 01 	lds	r24, 0x01CC	; 0x8001cc <I2C_LCD_Data>
  76e:	8f 70       	andi	r24, 0x0F	; 15
  770:	9c 2f       	mov	r25, r28
  772:	90 7f       	andi	r25, 0xF0	; 240
  774:	89 2b       	or	r24, r25
  776:	80 93 cc 01 	sts	0x01CC, r24	; 0x8001cc <I2C_LCD_Data>
-	// 이전 상위 비트는 다 날라감 | data의 상위 비트는 살림 
-	LCD_EnablePin();
  77a:	d9 df       	rcall	.-78     	; 0x72e <LCD_EnablePin>
-	I2C_LCD_Data = (I2C_LCD_Data & 0x0f) | ((data & 0x0f)<<4); // 하위 4bit
  77c:	20 e1       	ldi	r18, 0x10	; 16
  77e:	c2 9f       	mul	r28, r18
  780:	c0 01       	movw	r24, r0
@@ -1423,105 +1313,53 @@ void LCD_Data4bit(uint8_t data)
  788:	9f 70       	andi	r25, 0x0F	; 15
  78a:	89 2b       	or	r24, r25
  78c:	80 93 cc 01 	sts	0x01CC, r24	; 0x8001cc <I2C_LCD_Data>
-	LCD_EnablePin();
  790:	ce df       	rcall	.-100    	; 0x72e <LCD_EnablePin>
-	// 상위 4bit 받고 -> Enable해서 출력하고 -> 하위 4bit 받고 상위로 시프트하고 -> Enabla해서 출력하고
-	// [7:4] 핀만 사용해서 반반 나눠서 출력하면, 총 8bit를 출력할 수 있다.
-}
  792:	cf 91       	pop	r28
  794:	08 95       	ret
 
 00000796 <LCD_WriteCommand>:
-	_delay_us(1600);
-}
-
-void LCD_WriteCommand(uint8_t commandData)
-{
-	I2C_LCD_Data &= ~(1<<LCD_RS); // Command일 때는 control register(TWCR)을 쓰고
  796:	90 91 cc 01 	lds	r25, 0x01CC	; 0x8001cc <I2C_LCD_Data>
-	I2C_LCD_Data &= ~(1<<LCD_RW); // Write 모드
  79a:	9c 7f       	andi	r25, 0xFC	; 252
  79c:	90 93 cc 01 	sts	0x01CC, r25	; 0x8001cc <I2C_LCD_Data>
-	LCD_Data4bit(commandData);
  7a0:	e2 cf       	rjmp	.-60     	; 0x766 <LCD_Data4bit>
  7a2:	08 95       	ret
 
 000007a4 <LCD_WriteData>:
-}
-
-void LCD_WriteData(uint8_t charData)
-{
-	I2C_LCD_Data |= (1<<LCD_RS); // Data받을 때는 Data Register(TWDR) 쓰고
  7a4:	90 91 cc 01 	lds	r25, 0x01CC	; 0x8001cc <I2C_LCD_Data>
  7a8:	91 60       	ori	r25, 0x01	; 1
-	I2C_LCD_Data &= ~(1<<LCD_RW); // Write 모드
  7aa:	9d 7f       	andi	r25, 0xFD	; 253
  7ac:	90 93 cc 01 	sts	0x01CC, r25	; 0x8001cc <I2C_LCD_Data>
-	LCD_Data4bit(charData);
  7b0:	da cf       	rjmp	.-76     	; 0x766 <LCD_Data4bit>
  7b2:	08 95       	ret
 
 000007b4 <LCD_BackLight>:
-}
-
-
-void LCD_BackLight()
-{
-	I2C_LCD_Data |= (1<<LCD_BACKLIGHT);
  7b4:	60 91 cc 01 	lds	r22, 0x01CC	; 0x8001cc <I2C_LCD_Data>
  7b8:	68 60       	ori	r22, 0x08	; 8
  7ba:	60 93 cc 01 	sts	0x01CC, r22	; 0x8001cc <I2C_LCD_Data>
-	I2C_TxByte(LCD_DEV_ADDR, I2C_LCD_Data);
  7be:	8e e4       	ldi	r24, 0x4E	; 78
  7c0:	a9 cf       	rjmp	.-174    	; 0x714 <I2C_TxByte>
  7c2:	08 95       	ret
 
 000007c4 <LCD_gotoXY>:
-}
-
-void LCD_gotoXY(uint8_t row, uint8_t col) // LCD 화면의 커서를 지정된 행(row)과 열(col) 위치로 이동시키는 함수
-{
-	col %= 16; // 0~15 사이의 값 지정 가능
  7c4:	6f 70       	andi	r22, 0x0F	; 15
-	row %= 2; // 0~1 사이의 값 지정 가능
  7c6:	81 70       	andi	r24, 0x01	; 1
-	uint8_t address = (0x40 * row) + col; // 주어진 row와 col 값을 이용하여 LCD 화면의 주소(address, 커서 위치)룰 계산한다.
  7c8:	90 e4       	ldi	r25, 0x40	; 64
  7ca:	89 9f       	mul	r24, r25
  7cc:	60 0d       	add	r22, r0
  7ce:	11 24       	eor	r1, r1
  7d0:	86 2f       	mov	r24, r22
-	// 두 번째 행(row 1)의 주소 범위는 0x40 ~ 0x4f(64~79)
-	// 예시 : row 1, col 3 -> address = 0x43
-	uint8_t command = 0x80 + address; // 계산된 주소를 이용하여 이동시키는 명령어 command 생성
-	// 0x80을 사용하는 이유는 특정 주소값이 아닌, 첫 번째 행의 시작을 나타내는 상징적인 값으로 사용된다,
-	// 이렇게 함으로써 코드의 가독성을 높이고, 행과 열 값을 쉽게 결합하여 원하는 주소 값을 계산할 수 있다.
-	LCD_WriteCommand(command);
  7d2:	80 58       	subi	r24, 0x80	; 128
  7d4:	e0 cf       	rjmp	.-64     	; 0x796 <LCD_WriteCommand>
  7d6:	08 95       	ret
 
 000007d8 <LCD_WriteString>:
-}
-
-void LCD_WriteString(char *string)
-{
  7d8:	0f 93       	push	r16
  7da:	1f 93       	push	r17
  7dc:	cf 93       	push	r28
  7de:	8c 01       	movw	r16, r24
-	for (uint8_t i = 0 ; string[i] ; i++) // 받은 문자열의 포인터가 보는 곳을 한 비트씩 분해해서 LCD_WriteData 함수에 하나씩 뿌려줌
  7e0:	c0 e0       	ldi	r28, 0x00	; 0
  7e2:	02 c0       	rjmp	.+4      	; 0x7e8 <LCD_WriteString+0x10>
-	{
-		LCD_WriteData(string[i]);
  7e4:	df df       	rcall	.-66     	; 0x7a4 <LCD_WriteData>
-	LCD_WriteCommand(command);
-}
-
-void LCD_WriteString(char *string)
-{
-	for (uint8_t i = 0 ; string[i] ; i++) // 받은 문자열의 포인터가 보는 곳을 한 비트씩 분해해서 LCD_WriteData 함수에 하나씩 뿌려줌
  7e6:	cf 5f       	subi	r28, 0xFF	; 255
  7e8:	f8 01       	movw	r30, r16
  7ea:	ec 0f       	add	r30, r28
@@ -1529,37 +1367,23 @@ void LCD_WriteString(char *string)
  7ee:	80 81       	ld	r24, Z
  7f0:	81 11       	cpse	r24, r1
  7f2:	f8 cf       	rjmp	.-16     	; 0x7e4 <LCD_WriteString+0xc>
-	{
-		LCD_WriteData(string[i]);
-	}
-}
  7f4:	cf 91       	pop	r28
  7f6:	1f 91       	pop	r17
  7f8:	0f 91       	pop	r16
  7fa:	08 95       	ret
 
 000007fc <LCD_WriteStringXY>:
-
-void LCD_WriteStringXY(uint8_t row, uint8_t col, char *string)
-{
  7fc:	cf 93       	push	r28
  7fe:	df 93       	push	r29
  800:	ea 01       	movw	r28, r20
-	LCD_gotoXY(row,col); // 행과 열의 위치를 받음. -> 어디서부터 쓸 것인지를 좌표를 받음
  802:	e0 df       	rcall	.-64     	; 0x7c4 <LCD_gotoXY>
-	LCD_WriteString(string); // 문자열 입력을 받음
  804:	ce 01       	movw	r24, r28
  806:	e8 df       	rcall	.-48     	; 0x7d8 <LCD_WriteString>
-}
  808:	df 91       	pop	r29
  80a:	cf 91       	pop	r28
  80c:	08 95       	ret
 
 0000080e <LCD_Init>:
-
-void LCD_Init()
-{
-	I2C_Init();
  80e:	65 df       	rcall	.-310    	; 0x6da <I2C_Init>
 	#else
 		//round up by default
@@ -1576,9 +1400,6 @@ void LCD_Init()
  81c:	e1 f7       	brne	.-8      	; 0x816 <LCD_Init+0x8>
  81e:	00 c0       	rjmp	.+0      	; 0x820 <LCD_Init+0x12>
  820:	00 00       	nop
-	
-	_delay_ms(20);
-	LCD_WriteCommand(0x03);
  822:	83 e0       	ldi	r24, 0x03	; 3
  824:	b8 df       	rcall	.-144    	; 0x796 <LCD_WriteCommand>
  826:	8f e3       	ldi	r24, 0x3F	; 63
@@ -1586,8 +1407,6 @@ void LCD_Init()
  82a:	01 97       	sbiw	r24, 0x01	; 1
  82c:	f1 f7       	brne	.-4      	; 0x82a <LCD_Init+0x1c>
  82e:	00 c0       	rjmp	.+0      	; 0x830 <LCD_Init+0x22>
-	_delay_ms(10);
-	LCD_WriteCommand(0x03);
  830:	00 00       	nop
  832:	83 e0       	ldi	r24, 0x03	; 3
  834:	b0 df       	rcall	.-160    	; 0x796 <LCD_WriteCommand>
@@ -1596,36 +1415,27 @@ void LCD_Init()
  83a:	01 97       	sbiw	r24, 0x01	; 1
  83c:	f1 f7       	brne	.-4      	; 0x83a <LCD_Init+0x2c>
  83e:	00 c0       	rjmp	.+0      	; 0x840 <LCD_Init+0x32>
-	_delay_ms(1);
-	LCD_WriteCommand(0x03);
  840:	00 00       	nop
  842:	83 e0       	ldi	r24, 0x03	; 3
-	
-	LCD_WriteCommand(0x02);
  844:	a8 df       	rcall	.-176    	; 0x796 <LCD_WriteCommand>
  846:	82 e0       	ldi	r24, 0x02	; 2
-	LCD_WriteCommand(COMMAND_4_BIT_MODE);
  848:	a6 df       	rcall	.-180    	; 0x796 <LCD_WriteCommand>
  84a:	88 e2       	ldi	r24, 0x28	; 40
-	LCD_WriteCommand(COMMAND_DISPLAY_OFF);
  84c:	a4 df       	rcall	.-184    	; 0x796 <LCD_WriteCommand>
  84e:	88 e0       	ldi	r24, 0x08	; 8
-	LCD_WriteCommand(COMMAND_DISPLAY_CLEAR);
  850:	a2 df       	rcall	.-188    	; 0x796 <LCD_WriteCommand>
  852:	81 e0       	ldi	r24, 0x01	; 1
  854:	a0 df       	rcall	.-192    	; 0x796 <LCD_WriteCommand>
-	LCD_WriteCommand(COMMAND_ENTRY_MODE);
  856:	86 e0       	ldi	r24, 0x06	; 6
  858:	9e df       	rcall	.-196    	; 0x796 <LCD_WriteCommand>
  85a:	8c e0       	ldi	r24, 0x0C	; 12
-	LCD_WriteCommand(COMMAND_DISPLAY_ON);
  85c:	9c df       	rcall	.-200    	; 0x796 <LCD_WriteCommand>
  85e:	aa cf       	rjmp	.-172    	; 0x7b4 <LCD_BackLight>
  860:	08 95       	ret
 
 00000862 <main>:
-	//Fan_continue_run();
 //}
+
 
 int main(void)
 {
@@ -1633,7 +1443,7 @@ int main(void)
  862:	a7 dc       	rcall	.-1714   	; 0x1b2 <Fan_Init>
 	Fan_Start_signal();
  864:	f5 dc       	rcall	.-1558   	; 0x250 <Fan_Start_signal>
-			
+	
 	while (1)
 	{
 		Fan_Stage();
